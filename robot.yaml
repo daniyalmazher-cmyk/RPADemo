@@ -2,8 +2,8 @@
 # https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-robotyaml
 
 tasks:
-  Run Task:
-    shell: python -m robocorp.tasks run tasks.py
+  Scan and Classify:
+    shell: python -m robocorp.tasks run tasks.py -t main
 
 environmentConfigs:
   - environment_windows_amd64_freeze.yaml
