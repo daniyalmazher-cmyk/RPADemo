@@ -2,8 +2,8 @@
 from pathlib import Path
 
 import pandas as pd
-import pdfplumber
 from RPA.FileSystem import FileSystem
+from RPA.PDF import PDF
 
 SUPPORTED_EXTENSIONS = (".csv", ".xlsx", ".xls", ".pdf", ".txt")
 
@@ -37,11 +37,11 @@ def extract_content(file_path: Path) -> str:
         return "\n".join(parts)
 
     if suffix == ".pdf":
-        pages = []
-        with pdfplumber.open(file_path) as pdf:
-            for page in pdf.pages:
-                pages.append(page.extract_text() or "")
-        return "\n".join(pages)
+        pdf = PDF()
+        pages = pdf.get_text_from_pdf(str(file_path))
+        if isinstance(pages, dict):
+            return "\n".join(str(pages[k] or "") for k in sorted(pages.keys()))
+        return str(pages or "")
 
     if suffix == ".txt":
         return file_path.read_text(encoding="utf-8", errors="ignore")
