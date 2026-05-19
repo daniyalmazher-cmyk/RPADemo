@@ -1,9 +1,11 @@
 """Process orchestrator.
 
-start() does all the discovery + detection + classification work.
+start() pulls fresh files from Gmail (via libraries.email_source), then runs
+the discovery + detection + classification pipeline.
 finish() writes reports + audit log, and is invoked from a finally block so
 the run leaves behind useful artifacts even when start() fails partway.
 """
+import shutil
 from pathlib import Path
 
 from robocorp import log
@@ -12,15 +14,14 @@ from libraries.audit import AuditLogger
 from libraries.classification import classify_file, compute_risk_score
 from libraries.detection import detect
 from libraries.discovery import discover_files, extract_content
+from libraries.email_source import fetch_attachments
 from libraries.reporting import write_csv_report, write_json_report
-from libraries.sample_data import generate_all_samples
 
 
 class Process:
     def __init__(self) -> None:
         self.input_dir = Path("input")
         self.output_dir = Path("output")
-        self.input_dir.mkdir(exist_ok=True)
         self.output_dir.mkdir(exist_ok=True)
 
         self.audit = AuditLogger()
@@ -29,13 +30,22 @@ class Process:
     # ---------- start ---------------------------------------------------------
 
     def start(self) -> None:
-        """Discover files, detect sensitive data, classify, score risk."""
+        """Fetch new email attachments, then detect + classify each file."""
         self.audit.event("start", {"input_dir": str(self.input_dir)})
+        self._reset_input_dir()
 
-        if not any(self.input_dir.iterdir()):
-            log.info("Input folder empty - bootstrapping sample data")
-            generate_all_samples(self.input_dir)
-            self.audit.event("sample_data_generated")
+        try:
+            downloaded = fetch_attachments(self.input_dir)
+            log.info(f"Downloaded {len(downloaded)} attachment(s) from Gmail")
+            self.audit.event("email_fetch_complete", {
+                "downloaded_count": len(downloaded),
+                "files": [str(f) for f in downloaded],
+            })
+        except Exception as exc:
+            # Don't abort the run — finish() still writes whatever we have.
+            # Operators can drop files directly into input/ as a fallback path.
+            log.exception(f"Email fetch failed: {exc}")
+            self.audit.event("email_fetch_failed", {"error": str(exc)})
 
         files = discover_files(self.input_dir)
         log.info(f"Discovered {len(files)} files")
@@ -46,6 +56,11 @@ class Process:
 
         for f in files:
             self._scan_file(f)
+
+    def _reset_input_dir(self) -> None:
+        if self.input_dir.exists():
+            shutil.rmtree(self.input_dir)
+        self.input_dir.mkdir(parents=True)
 
     def _scan_file(self, path: Path) -> None:
         log.info(f"Processing {path.name}")

@@ -220,4 +220,5 @@ input/
 output/
 devdata/work-items-in/
 devdata/work-items-out/
+devdata/vault.json
 .robocorp_*

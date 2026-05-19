@@ -6,6 +6,35 @@ The template provides you with the basic structure of a Python project: logging 
 
 👉 Other templates are available as well via our tooling and on our [Portal](https://robocorp.com/portal/tag/template)
 
+## Configuration: Gmail credentials
+
+The bot pulls input files from a Gmail inbox via IMAP. It looks for **unread**
+messages whose subject contains `DLP SCAN`, downloads each message's
+attachments, and marks the email as read.
+
+Credentials live in **Robocorp Vault** under the secret name
+`gmail_credentials` with two keys:
+
+| Key        | Value                                                  |
+|------------|--------------------------------------------------------|
+| `username` | The Gmail address (e.g. `dlp.demo.bank@gmail.com`)     |
+| `password` | A Gmail **App Password** — *not* the account password. |
+
+App Passwords: https://myaccount.google.com/apppasswords (2-Step Verification
+must be enabled first).
+
+### Cloud (Control Room)
+
+Control Room → Vault → Create Secret → name `gmail_credentials` → two fields
+as above. The bot picks it up automatically via `robocorp.vault`.
+
+### Local
+
+1. Copy `devdata/vault.example.json` → `devdata/vault.json` (gitignored).
+2. Fill in your username + App Password.
+3. `devdata/env.json` already sets `RC_VAULT_SECRET_FILE` so `rcc run` will
+   find it.
+
 ## Running
 
 #### VS Code
