@@ -67,13 +67,16 @@ def fetch_attachments(target_dir: Path) -> list[Path]:
             msg_dir = target_dir / f"{uid}_{_safe_token(subj)}"
             msg_dir.mkdir(parents=True, exist_ok=True)
 
-            saved = mail.save_attachments(
-                messages=[msg],
+            saved = mail.save_attachment(
+                msg,
                 target_folder=str(msg_dir),
                 overwrite=True,
             ) or []
 
-            for entry in saved:
+            # save_attachment may return a list of paths, a single path string,
+            # or a list of dicts — handle each defensively.
+            entries = saved if isinstance(saved, list) else [saved]
+            for entry in entries:
                 if isinstance(entry, dict):
                     raw_path = entry.get("Saved-Path") or entry.get("path")
                 else:
