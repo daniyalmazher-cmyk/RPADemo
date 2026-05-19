@@ -91,9 +91,18 @@ def fetch_attachments(target_dir: Path) -> list[Path]:
                     continue
                 downloaded.append(path)
 
-        # Mark read so the next run only sees new emails
-        mail.mark_as_read(messages=messages)
-        log.info(f"Saved {len(downloaded)} attachment(s); marked {len(messages)} emails as read")
+        # Mark read so the next run only sees new emails.
+        # rpaframework's mark_as_read takes an IMAP criterion (not message dicts),
+        # so build a UID-list criterion from what we processed.
+        uids = [str(m.get("uid") or m.get("UID")) for m in messages
+                if m.get("uid") or m.get("UID")]
+        if uids:
+            try:
+                mail.mark_as_read(criterion=f"UID {','.join(uids)}")
+            except Exception as exc:
+                log.warn(f"mark_as_read failed (continuing): {exc}")
+
+        log.info(f"Saved {len(downloaded)} attachment(s); processed {len(messages)} email(s)")
 
         return downloaded
     finally:
