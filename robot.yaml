@@ -1,0 +1,20 @@
+tasks:
+  Prepare Sample Data:
+    shell: python -m robocorp.tasks run tasks.py -t prepare_sample_data
+  Scan and Classify (folder):
+    shell: python -m robocorp.tasks run tasks.py -t scan_and_classify
+  Seed Demo Work Item (producer):
+    shell: python -m robocorp.tasks run tasks.py -t seed_demo_workitem
+  Process Work Items (consumer):
+    shell: python -m robocorp.tasks run tasks.py -t process_workitems
+
+condaConfigFile: conda.yaml
+
+artifactsDir: output
+
+PATH:
+  - .
+PYTHONPATH:
+  - .
+ignoreFiles:
+  - .gitignore

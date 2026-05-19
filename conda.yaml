@@ -1,0 +1,15 @@
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.10.12
+  - pip=23.2.1
+  - pip:
+      - robocorp==1.6.2
+      - robocorp-tasks==2.10.0
+      - robocorp-workitems==1.4.7
+      - rpaframework==28.6.3
+      - pandas==2.2.0
+      - openpyxl==3.1.2
+      - pdfplumber==0.10.4
+      - reportlab==4.0.9
