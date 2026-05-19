@@ -1,198 +1,60 @@
-# Sensitive Data Discovery & Classification Bot
+# Template: Python - Minimal
 
-A Robocorp + RPA Framework bot that scans enterprise files, detects sensitive
-financial and personal data, classifies each file by sensitivity, scores risk,
-and emits structured reports that downstream DLP / governance systems
-(Microsoft Purview, Forcepoint, etc.) can consume.
+This template leverages the new [Python framework](https://github.com/robocorp/robocorp), the [libraries](https://github.com/robocorp/robocorp/blob/master/docs/README.md#python-libraries) from to same project as well.
 
-This repo contains **only the bot** — the Streamlit visualization layer lives
-in a separate project and reads the reports written here.
+The template provides you with the basic structure of a Python project: logging out of the box and controlling your tasks without fiddling with the base Python stuff. The environment contains the most used libraries, so you do not have to start thinking about those right away. 
 
-## What it does
+👉 Other templates are available as well via our tooling and on our [Portal](https://robocorp.com/portal/tag/template)
 
-```
-input/ (CSV, Excel, PDF, TXT)
-   │
-   ▼
-RPA Framework discovery  ──▶  Content extraction (pandas, pdfplumber)
-                                       │
-                                       ▼
-                          Regex-based sensitive data detection
-                          (CNIC, IBAN, credit card + Luhn, email,
-                           phone, salary indicators)
-                                       │
-                                       ▼
-                  Classification (Public / Confidential / Highly Confidential)
-                                       │
-                                       ▼
-                          Risk score (0–100, weighted)
-                                       │
-                                       ▼
-              output/classification_report.csv
-              output/classification_report.json
-              output/audit_log.json
-```
+## Running
 
-## Project layout
+#### VS Code
+1. Get [Robocorp Code](https://robocorp.com/docs/developer-tools/visual-studio-code/extension-features) -extension for VS Code.
+1. You'll get an easy-to-use side panel and powerful command-palette commands for running, debugging, code completion, docs, etc.
 
-```
-.
-├── robot.yaml              # Robocorp tasks + env config
-├── conda.yaml              # Python deps for the bot environment
-├── tasks.py                # @task entry points
-├── bot/
-│   ├── discovery.py        # File walking + content extraction
-│   ├── detection.py        # Regex patterns + Luhn validation
-│   ├── classification.py   # Labels + risk scoring
-│   ├── reporting.py        # CSV / JSON report writers
-│   ├── audit.py            # Per-run audit logger
-│   └── sample_data.py      # Generates fake fintech demo files
-├── input/                  # Created at runtime; bot reads from here
-└── output/                 # Created at runtime; reports + artifacts
-```
+#### Command line
 
-## Tasks
+1. [Get RCC](https://github.com/robocorp/rcc?tab=readme-ov-file#getting-started)
+1. Use the command: `rcc run`
 
-The bot exposes four Robocorp tasks (see `robot.yaml`):
+## Results
 
-| Task                            | Mode       | What it does                                                                    |
-|---------------------------------|------------|---------------------------------------------------------------------------------|
-| `Prepare Sample Data`           | bootstrap  | Writes demo files into `input/` AND seeds a dev work item under `devdata/`.     |
-| `Scan and Classify (folder)`    | folder     | Reads from `input/`, writes reports to `output/`. Simple standalone run.        |
-| `Seed Demo Work Item (producer)`| work item  | Producer — creates an output work item carrying the sample files.               |
-| `Process Work Items (consumer)` | work item  | Consumer — for each input WI, downloads files, scans, emits an output WI.       |
+🚀 After running the bot, check out the `log.html` under the `output` -folder.
 
-`Scan and Classify (folder)` auto-generates sample data if `input/` is empty, so
-both modes are one-click in Control Room.
+## Dependencies
 
-## Operating modes
+We strongly recommend getting familiar with adding your dependencies in [conda.yaml](conda.yaml) to control your Python dependencies and the whole Python environment for your automation.
 
-### 1. Folder mode
+<details>
+  <summary>🙋‍♂️ "Why not just pip install...?"</summary>
 
-Drop files into `input/` (or let the bot bootstrap samples). The bot scans the
-folder and writes reports to `output/`. Useful for local dev and bots running
-against a fileshare.
+Think of [conda.yaml](conda.yaml) as an equivalent of the requirements.txt, but much better. 👩‍💻 With `conda.yaml`, you are not just controlling your PyPI dependencies; you control the complete Python environment, which makes things repeatable and easy.
 
-### 2. Work-item mode (Control Room production pattern)
+👉 You will probably need to run your code on another machine quite soon, so by using `conda.yaml`:
+- You can avoid `Works on my machine` -cases
+- You do not need to manage Python installations on all the machines
+- You can control exactly which version of Python your automation will run on 
+  - You'll also control the pip version to avoid dep. resolution changes
+- No need for venv, pyenv, ... tooling and knowledge sharing inside your team.
+- Define dependencies in conda.yaml, let our tooling do the heavy lifting.
+- You get all the content of [conda-forge](https://prefix.dev/channels/conda-forge) without any extra tooling
 
-Files arrive as **attachments on input work items**. The consumer downloads
-them, scans them, and emits an **output work item** carrying:
-- `classification_report.csv` (file)
-- `classification_report.json` (file)
-- `audit_log.json` (file)
-- `payload`: `{batch_id, summary: {file_count, classification_counts, max_risk_score, highest_risk_files}, reports: {...}}`
+> Dive deeper with [these](https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-condayaml) resources.
 
-Downstream consumers (DLP routing, alerting, governance ingestion) read the
-summary payload to make decisions without parsing the reports themselves.
+</details>
+<br/>
 
-## Run locally (with `rcc`)
+> The full power of [rpaframework](https://robocorp.com/docs/python/rpa-framework) -libraries is also available on Python as a backup while we implement the new Python libraries.
 
-```bash
-# Bootstrap sample data (writes input/ AND devdata/work-items-in/)
-rcc run -t "Prepare Sample Data"
+## What now?
 
-# Folder mode
-rcc run -t "Scan and Classify (folder)"
+🚀 Now, go get'em
 
-# Work-item mode (rcc auto-loads devdata/env.json)
-rcc run -t "Process Work Items (consumer)"
-```
+Start writing Python and remember that the AI/LLM's out there are getting really good and creating Python code specifically.
 
-Outputs land in `./output/`; output work items land in `./devdata/work-items-out/`.
+👉 Try out [Robocorp ReMark 💬](https://chat.robocorp.com)
 
-## Run locally (without rcc, in any Python 3.10+ env)
-
-```bash
-pip install robocorp robocorp-tasks robocorp-workitems rpaframework \
-            pandas openpyxl pdfplumber reportlab
-
-# Bootstrap
-python -m robocorp.tasks run tasks.py -t prepare_sample_data
-
-# Folder mode
-python -m robocorp.tasks run tasks.py -t scan_and_classify
-
-# Work-item mode — point the adapter at the seeded dev batch
-RC_WORKITEM_INPUT_PATH=devdata/work-items-in/demo-batch/work-items.json \
-RC_WORKITEM_OUTPUT_PATH=devdata/work-items-out/work-items.json \
-python -m robocorp.tasks run tasks.py -t process_workitems
-```
-
-## Deploy to Robocorp Cloud (Control Room)
-
-1. Push this repo to GitHub (or zip it).
-2. In Control Room → **Robots** → **New Robot** → link the repo (or upload the zip).
-3. Control Room reads `robot.yaml` and registers all four tasks.
-4. Pick a deployment pattern:
-
-   **Pattern A — folder mode (simplest demo):**
-   - Create a Process running `Scan and Classify (folder)`.
-   - The bot auto-bootstraps sample data, so the first run works out of the box.
-   - Reports appear as run artifacts.
-
-   **Pattern B — producer/consumer (full Control Room demo):**
-   - Create a Process with two steps:
-     1. `Seed Demo Work Item (producer)` — creates an input work item with sample files.
-     2. `Process Work Items (consumer)` — consumes it, emits an output work item.
-   - The output work item is visible in the Work Items view with the reports
-     attached and the summary payload, ready for a downstream process.
-
-5. For real input, replace `Seed Demo Work Item` with an actual producer
-   (an SFTP poller, a webhook, an inbox watcher, etc.) that creates input
-   work items carrying the files to scan.
-
-## Output schema
-
-`classification_report.csv` columns:
-
-```
-file_name, file_path, file_type, classification, risk_score,
-cnic_count, iban_count, credit_card_count, email_count, phone_count,
-salary_indicator
-```
-
-`classification_report.json` envelope:
-
-```json
-{
-  "schema_version": "1.0",
-  "record_count": N,
-  "records": [
-    {
-      "file_path": "...",
-      "file_name": "...",
-      "file_type": "csv|xlsx|pdf|txt",
-      "detections": {
-        "cnic": [...], "iban": [...], "credit_card": [...],
-        "email": [...], "phone": [...], "salary_indicator": [...]
-      },
-      "classification": "Public|Confidential|Highly Confidential",
-      "risk_score": 0-100
-    }
-  ]
-}
-```
-
-`audit_log.json` carries a `run_id`, timestamps, and an event stream
-(discovery, per-file outcome, errors, report paths).
-
-## Detection rules
-
-| Category        | Pattern / logic                                                          |
-|-----------------|--------------------------------------------------------------------------|
-| CNIC            | `\d{5}-?\d{7}-?\d{1}` (Pakistani national ID)                            |
-| IBAN            | `[A-Z]{2}\d{2}[A-Z0-9]{11,30}`                                           |
-| Credit card     | 13–19 digit groups, Luhn-validated                                       |
-| Email           | RFC-ish `local@host.tld`                                                 |
-| Phone           | Pakistani mobile (`+92 3XX XXXXXXX` / `03XX XXXXXXX`)                    |
-| Salary signal   | Keywords: salary, payroll, net/gross pay, annual/monthly income          |
-
-## Classification & risk
-
-- **Highly Confidential** — any CNIC, IBAN, or credit card present.
-- **Confidential** — any salary signal, email, or phone (no high-tier hits).
-- **Public** — nothing matched.
-
-Risk score: full weight for the first hit in a category, half weight per
-additional hit, summed across categories, capped at 100. Weights:
-CNIC 30, IBAN 25, credit card 35, salary 20, email/phone 5 each.
+For more information, do not forget to check out the following:
+- [Robocorp Documentation -site](https://robocorp.com/docs)
+- [Portal for more examples](https://robocorp.com/portal)
+- Follow our main [robocorp -repository](https://github.com/robocorp/robocorp) as it is the main location where we developed the libraries and the framework.

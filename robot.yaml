@@ -1,14 +1,15 @@
-tasks:
-  Prepare Sample Data:
-    shell: python -m robocorp.tasks run tasks.py -t prepare_sample_data
-  Scan and Classify (folder):
-    shell: python -m robocorp.tasks run tasks.py -t scan_and_classify
-  Seed Demo Work Item (producer):
-    shell: python -m robocorp.tasks run tasks.py -t seed_demo_workitem
-  Process Work Items (consumer):
-    shell: python -m robocorp.tasks run tasks.py -t process_workitems
+# For more details on the format and content:
+# https://github.com/robocorp/rcc/blob/master/docs/recipes.md#what-is-in-robotyaml
 
-condaConfigFile: conda.yaml
+tasks:
+  Run Task:
+    shell: python -m robocorp.tasks run tasks.py
+
+environmentConfigs:
+  - environment_windows_amd64_freeze.yaml
+  - environment_linux_amd64_freeze.yaml
+  - environment_darwin_amd64_freeze.yaml
+  - conda.yaml
 
 artifactsDir: output
 
