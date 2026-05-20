@@ -2,19 +2,19 @@
 import re
 
 from libraries.rules import (
-    CNIC_PATTERN,
     CREDIT_CARD_PATTERN,
     EMAIL_PATTERN,
     IBAN_PATTERN,
     PHONE_PATTERN,
     SALARY_KEYWORDS,
+    SAUDI_ID_PATTERN,
 )
 from libraries.validators import luhn_valid
 
 
 def detect(content: str) -> dict[str, list[str]]:
     detections: dict[str, list[str]] = {
-        "cnic": sorted(set(CNIC_PATTERN.findall(content))),
+        "saudi_id": sorted(set(SAUDI_ID_PATTERN.findall(content))),
         "iban": sorted(set(IBAN_PATTERN.findall(content))),
         "credit_card": [],
         "email": sorted(set(EMAIL_PATTERN.findall(content))),
@@ -29,10 +29,12 @@ def detect(content: str) -> dict[str, list[str]]:
             seen.add(norm)
             detections["credit_card"].append(norm)
 
-    # Drop card hits that overlap an IBAN (digits inside an IBAN can luhn-validate)
+    # Drop card hits that overlap an IBAN (digits inside an IBAN can luhn-validate).
+    # Compare digit-only forms so the SA letters in the IBAN don't break the check.
+    iban_digit_blobs = [re.sub(r"\D", "", iban) for iban in detections["iban"]]
     detections["credit_card"] = [
         c for c in detections["credit_card"]
-        if not any(c in iban for iban in detections["iban"])
+        if not any(c in blob for blob in iban_digit_blobs)
     ]
 
     if SALARY_KEYWORDS.search(content):
