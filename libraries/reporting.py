@@ -5,7 +5,6 @@ from pathlib import Path
 
 CSV_FIELDS = [
     "file_name",
-    "file_path",
     "file_type",
     "classification",
     "risk_score",
@@ -27,7 +26,6 @@ def write_csv_report(results: list[dict], path: Path) -> None:
             d = r["detections"]
             writer.writerow({
                 "file_name": r["file_name"],
-                "file_path": r["file_path"],
                 "file_type": r["file_type"],
                 "classification": r["classification"],
                 "risk_score": r["risk_score"],
