@@ -93,7 +93,7 @@ class Process:
     def finish(self) -> None:
         """Write CSV / JSON / audit reports. Always runs (called from finally)."""
         csv_path = self.output_dir / "report.csv"
-        json_path = self.output_dir / "classification_report.json"
+        json_path = self.output_dir / "report.json"
         audit_path = self.output_dir / "audit_log.json"
 
         write_csv_report(self.results, csv_path)
