@@ -71,7 +71,6 @@ class Process:
             risk_score = compute_risk_score(detections)
 
             self.results.append({
-                "file_path": str(path),
                 "file_name": path.name,
                 "file_type": path.suffix.lstrip("."),
                 "detections": detections,
